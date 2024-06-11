@@ -1,0 +1,20 @@
+// export const resolvers = {
+//     Mutation: {
+//       create: async (_, args) => {
+//         if (args.UserInput) {
+//           // Handle UserInput
+//           return createUser(args.UserInput);
+//         } else if (args.TeenantInput) {
+//           // Handle TeenantInput
+//           return createTeenant(args.TeenantInput);
+//         } else if (args.OrganisationInput) {
+//           // Handle OrganisationInput
+//           return createOrganisation(args.OrganisationInput);
+//         } else if (args.String && args.PropertyInput) {
+//           // Handle PropertyInput with additional String parameter
+//           return createProperty(args.String, args.PropertyInput);
+//         }
+//         throw new Error("Invalid input");
+//       },
+//     },
+//   };

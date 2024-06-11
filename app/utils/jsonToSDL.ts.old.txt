@@ -1,0 +1,53 @@
+import { fetchUnknownType } from '../services/apiService';
+
+interface TypeDefinition {
+  query?: Record<string, { type: string, input: string[], description: string, isArray: boolean }>,
+  mutation?: Record<string, { type: string, input: string[], description: string, isArray: boolean }>,
+  subscription?: Record<string, any>
+}
+
+const convertType = (type: string): string => {
+  if (type === 'string') {
+    return 'String';
+  } else if (type === 'object') {
+    return 'ObjectId';
+  }
+  // Add more type mappings as needed
+  return 'String';
+};
+
+const jsonToSDL = async (json: Record<string, TypeDefinition>): Promise<string> => {
+  let sdl = '';
+
+  for (const [typeName, typeDef] of Object.entries(json)) {
+    if (typeDef.query) {
+      sdl += `type ${typeName} {\n`;
+
+    //   console.log("SDL-->",typeName,"--->",typeDef.query,typeDef.mutation);
+
+      for (const [fieldName, fieldDef] of Object.entries(typeDef.query)) {
+        sdl += `  ${fieldName}: ${convertType(fieldDef.type)}\n`;
+      }
+
+      sdl += '}\n\n';
+      console.log("SDL-->",sdl);
+    }
+
+
+    if (typeDef.mutation) {
+      sdl += `type ${typeName}Mutation {\n`;
+
+      for (const [fieldName, fieldDef] of Object.entries(typeDef.mutation)) {
+        sdl += `  ${fieldName}: ${convertType(fieldDef.type)}\n`;
+      }
+
+      sdl += '}\n\n';
+    }
+
+    // Add handling for subscription if needed
+  }
+
+  return sdl;
+};
+
+export default jsonToSDL;
