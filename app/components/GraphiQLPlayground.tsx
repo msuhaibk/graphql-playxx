@@ -319,64 +319,68 @@ schema {
 `;
 
 const GraphiQLPlayground: React.FC = () => {
-    const [schema, setSchema] = useState<GraphQLSchema | null>(null);
+  const [schema, setSchema] = useState<GraphQLSchema | null>(null);
 
 
-    useEffect(() => {
+  useEffect(() => {
 
-        const fetchData = async () => {
-            try {
-                // Fetch the existing SDL from the server
-                const docs = await fetchApiDocs();
+    const fetchData = async () => {
+      try {
+        // Fetch the existing SDL from the server
+        const docs = await fetchApiDocs();
 
-                // Convert JSON to SDL
-                const sdl = await jsonToSDL(docs);
-                console.log("FINAL SDL---->",sdl);
-                // Build schema from SDL
-                setSchema(buildSchema(sdl));
-            } catch (error) {
-                console.error("Error fetching and building schema:", error);
-            }
-        };
+        // Convert JSON to SDL
+        const sdl = await jsonToSDL(docs);
+        console.log("FINAL SDL---->", sdl);
+        // Build schema from SDL
+        setSchema(buildSchema(sdl));
+      } catch (error) {
+        console.error("Error fetching and building schema:", error);
+      }
+    };
 
-        fetchData();
-    }, []);
+    fetchData();
+  }, []);
 
-    // const customValidationRules: ValidationRule[] = specifiedRules.filter(rule => rule == ScalarLeafsRule);
-    // console.log("specifiedRules",specifiedRules,customValidationRules);
+  // const customValidationRules: ValidationRule[] = specifiedRules.filter(rule => rule == ScalarLeafsRule);
+  // console.log("specifiedRules",specifiedRules,customValidationRules);
 
-    // //   const validateSchema = (schema: GraphQLSchema, documentAST: any) => {
-    // //     const errors = validate(schema, documentAST, specifiedRules.filter(rule => rule.name !== 'KnownTypeNamesRule'));
-    // //     return errors;
-    // //   };
+  // //   const validateSchema = (schema: GraphQLSchema, documentAST: any) => {
+  // //     const errors = validate(schema, documentAST, specifiedRules.filter(rule => rule.name !== 'KnownTypeNamesRule'));
+  // //     return errors;
+  // //   };
 
-    const ignoreUnknownTypeRule = (context:ValidationContext) => {
-        return {
-          NamedType(node:any) {
-            const typeName = node.name.value;
-            const type = context.getSchema().getType(typeName);
-            if (!type) {
-              // Ignore unknown types, no error will be added
-              return;
-            }
-          }
-        };
-      };
-      
-      const customValidationRules = [...specifiedRules, ignoreUnknownTypeRule];
+  const ignoreUnknownTypeRule = (context: ValidationContext) => {
+    return {
+      NamedType(node: any) {
+        const typeName = node.name.value;
+        const type = context.getSchema().getType(typeName);
+        if (!type) {
+          // Ignore unknown types, no error will be added
+          return;
+        }
+      }
+    };
+  };
 
-    return (
-        <GraphiQL
-            fetcher={async (graphQLParams) => {
-                // Implement the fetcher to interact with your GraphQL endpoint
-            }}
-            dangerouslyAssumeSchemaIsValid
-            schema={schema}
-            validationRules={customValidationRules}
-            schemaDescription={true}
+  const customValidationRules = [...specifiedRules, ignoreUnknownTypeRule];
 
-        />
-    );
+  return (
+    <GraphiQL
+      fetcher={async (graphQLParams) => {
+        // Implement the fetcher to interact with your GraphQL endpoint
+      }}
+      dangerouslyAssumeSchemaIsValid
+      schema={schema}
+      validationRules={customValidationRules}
+      schemaDescription={true}
+    >
+      <GraphiQL.Logo>
+        <div style={{ display: 'none' }}></div>
+      </GraphiQL.Logo>
+    </GraphiQL>
+
+  );
 };
 
 export default GraphiQLPlayground;
