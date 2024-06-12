@@ -3,8 +3,8 @@ import GraphiQLPlayground from './components/GraphiQLPlayground';
 
 const Home: React.FC = () => (
   <div style={{ height: '100vh' }}>
-    {/* <GraphiQLPlayground /> */}
-    HELLOW TEST NEXT
+    <GraphiQLPlayground />
+    {/* HELLOW TEST NEXT */}
   </div>
 );
 
