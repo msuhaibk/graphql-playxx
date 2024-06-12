@@ -1,0 +1,10 @@
+import React from 'react';
+import GraphiQLPlayground from '../components/GraphiQLPlayground';
+
+const Index: React.FC = () => (
+  <div style={{ height: '100vh' }}>
+    <GraphiQLPlayground />
+  </div>
+);
+
+export default Index;
