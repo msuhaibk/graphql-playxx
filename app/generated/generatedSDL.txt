@@ -1,0 +1,195 @@
+type Query {
+  loginWithPassword(LoginInput: LoginInput): AuthToken
+  verifyOtp(VerifyOtpInput: VerifyOtpInput): AuthToken
+  getUsers(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [User]
+  myProfile: User
+  find(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Organisation]
+  myOrganisation(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Organisation]
+  listManager(String: String, FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Manager]
+  mySetting: Landlord
+  myProperties(String: String, PageInput: PageInput, String1: String): [Property]
+}
+
+type Mutation {
+  createUser(UserInput: UserInput): GeneralResponse
+  sendOtp(IdentifierInput: IdentifierInput): GeneralResponse
+  addIam(IAmInput: IAmInput): GeneralResponse
+  createOrganisation(OrganisationInput: OrganisationInput): GeneralResponse
+  updateById(String: String, UpdateOrganisationInput: UpdateOrganisationInput): GeneralResponse
+  addManager(String: String, ManagerInput: ManagerInput): GeneralResponse
+  createProperty(String: String, PropertyInput: PropertyInput): GeneralResponse
+  bulkAddProperty: GeneralResponse
+  addUnit: GeneralResponse
+  bulkAddUnit: GeneralResponse
+  updateSetting(LandlordInput: LandlordInput): GeneralResponse
+  landlordAsset(String: String, LandlordAssetInput: LandlordAssetInput): GeneralResponse
+  createTeenant(TeenantInput: TeenantInput): GeneralResponse
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+scalar FilterQueryInput 
+
+
+scalar String 
+
+input LoginInput {
+  password: String!
+  identifier: String!
+}
+input VerifyOtpInput {
+  otp: String!
+  identifier: String!
+}
+input PageInput {
+  sort: String
+  limit: Int
+  skip: Int
+}
+input UserInput {
+  firstName: String!
+  lastName: String!
+  mobile: Float!
+  email: String
+  password: String
+}
+input IdentifierInput {
+  identifier: String!
+}
+input IAmInput {
+  name: String!
+  type: String!
+  credencial: String!
+}
+input OrganisationInput {
+  name: String!
+  email: String!
+  helpEmail: String
+  mobile: Float
+  helpMobile: Float
+  logo: String
+  businessUnits: [String]!
+  address: AddressInput!
+}
+input AddressInput {
+  line1: String!
+  line2: String
+  city: String
+  stateOrProvince: String!
+  location: LocationInput!
+  country: String!
+  pin: Int
+}
+input LocationInput {
+  type: String!
+  coordinates: [Float]!
+}
+input UpdateOrganisationInput {
+  email: String
+  helpEmail: String
+  mobile: Float
+  logo: String
+}
+input ManagerInput {
+  name: String!
+  permissions: PermissionInput!
+  role: String!
+  userIds: [String]!
+}
+input PermissionInput {
+  RealState: String!
+}
+input PropertyInput {
+  name: String!
+  address: AddressInput!
+  contactPerson: String
+  ammenity: Array!
+  tags: [String]!
+  mainPic: String!
+  photos: [String]!
+}
+
+scalar Array 
+
+input LandlordInput {
+  defaultOrgId: String
+  defaultProperty: String
+  defaultUnit: String
+}
+input LandlordAssetInput {
+  propertyUnitMap: Array!
+}
+input TeenantInput {
+  firstName: String!
+  lastName: String
+  orgId: String!
+  profilePic: String
+  email: String
+  dob: String
+}
+type AuthToken {
+  accessToken: String!
+  firstName: String!
+  email: String
+  defaultLanguage: String!
+}
+type User {
+  _id: String!
+  firstName: String!
+  lastName: String!
+  mobile: String!
+  email: String
+  defaultLanguage: String
+  isActive: String!
+}
+type Organisation {
+  _id: String!
+  name: String!
+  isDeleted: String!
+  email: String!
+  createdBy: String!
+  helpEmail: String
+  mobile: String
+  helpMobile: String
+  businessUnits: [String]!
+  logo: String
+  address: String
+  isActive: String!
+  createdAt: String!
+}
+type Manager {
+  _id: String!
+  name: String!
+  permissions: String!
+  role: String!
+  userIds: [String]!
+  orgId: String!
+  assignedBy: String!
+}
+type Landlord {
+  userId: String!
+  defaultOrgId: String
+  defaultProperty: String
+  defaultUnit: String
+}
+type Property {
+  _id: String!
+  name: String!
+  isDeleted: String!
+  orgId: String!
+  address: String!
+  contactPerson: String!
+  photos: [String]
+  mainPic: String
+  ammenity: [String]!
+  updatedAt: String
+  tags: [String]
+  ownedBy: String!
+}
+type GeneralResponse {
+  message: String!
+  refId: String
+}

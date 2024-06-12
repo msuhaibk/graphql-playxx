@@ -88,7 +88,7 @@ const jsonInputToSDL = async (name:string, schema: inputJSONSchema, typeCache: R
     return ''; // Skip if already processed
   }
 
-  console.log("name,schema,cache",name,schema,typeCache);
+  // console.log("name,schema,cache",name,schema,typeCache);
 
   const unknownTypes: Array<{ type: 'i' | 'o', name: string }> = [];
 
@@ -145,7 +145,7 @@ const jsonInputToSDL = async (name:string, schema: inputJSONSchema, typeCache: R
 
   sdl += '}\n';
 
-  console.log("unknownTypes---->>",name,sdl,unknownTypes);
+  // console.log("unknownTypes---->>",name,sdl,unknownTypes);
 
   if (unknownTypes?.length>0) {
     for (const unknownType of unknownTypes) {
@@ -162,13 +162,13 @@ const jsonInputToSDL = async (name:string, schema: inputJSONSchema, typeCache: R
     }
   }
 
-    console.log("SDLLLLLL---->>",sdl);
+    // console.log("SDLLLLLL---->>",sdl);
 
   return sdl;
 };
 
 const jsonOutputToSDL = async (name: string, json: outputJSONSchema, typeCache: Record<string, string> = {}): Promise<string> => {
-  console.log("OUTPUT,,--->",name, json);
+  // console.log("OUTPUT,,--->",name, json);
   if (typeCache[name]) {
     return ''; // Skip if already processed
   }
@@ -242,12 +242,23 @@ const jsonToSDL = async (schema: SchemaDefinition): Promise<string> => {
     let oSDL = '';
     const unknownTypes: Array<{ type: 'i' | 'o', name: string }> = [];
 
-    const typeCache: Record<string, string> = {};
+    const typeCache: Record<string, string> = {}; 
 
     const getFieldDefinition = (fieldName:string,field:any) => {
       // console.log("field",field);
       if (field.input?.length > 0 && fieldName) {
-        return `${fieldName}(${field.input.map((inputType:any) => `${inputType}: ${inputType}`).join(', ')}): ${field.isArray ? '[' : ''}${field.type}${field.isArray ? ']' : ''}`;
+
+        const paramCounts: Record<string, number> = {};
+        const params = field.input.map((inputType: any) => {
+          if (!paramCounts[inputType]) paramCounts[inputType] = 0;
+          paramCounts[inputType]++;
+          const paramName = paramCounts[inputType] > 1 ? `${inputType}${paramCounts[inputType] - 1}` : inputType; 
+          return `${paramName}: ${inputType}`;
+        }).join(', ');
+    
+        return `${fieldName}(${params}): ${field.isArray ? '[' : ''}${field.type}${field.isArray ? ']' : ''}`;
+
+        // return `${fieldName}(${field.input.map((inputType:any) => `${inputType}: ${inputType}`).join(', ')}): ${field.isArray ? '[' : ''}${field.type}${field.isArray ? ']' : ''}`;
       } else {
         return `${fieldName}: ${field.isArray ? '[' : ''}${field.type}${field.isArray ? ']' : ''}`;
       }
@@ -309,7 +320,7 @@ const jsonToSDL = async (schema: SchemaDefinition): Promise<string> => {
     for (const unknownType of unknownTypes) {
       try{
         const fetchedType = await fetchUnknownType(unknownType.type, unknownType.name);
-        console.log("FETCHETYPE====>",unknownType?.type,unknownType?.name,fetchedType);
+        // console.log("FETCHETYPE====>",unknownType?.type,unknownType?.name,fetchedType);
         switch (unknownType.type){ 
           case 'i':
              iSDL+= await jsonInputToSDL(unknownType?.name,fetchedType, typeCache);
@@ -329,208 +340,7 @@ const jsonToSDL = async (schema: SchemaDefinition): Promise<string> => {
     sdl+=oSDL;
     // console.log("FETCHED==>",iSDL,oSDL);
 
-    console.log("SDL--->",sdl);
-
-    // sdl = `
-    // type Query {
-    //   loginWithPassword(LoginInput: LoginInput): AuthToken
-    //   verifyOtp(VerifyOtpInput: VerifyOtpInput): AuthToken
-    //   getUsers(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [User]
-    //   myProfile: User
-    //   find(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Organisation]
-    //   myOrganisation(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Organisation]
-    //   listManager(String: String, FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Manager]
-    //   mySetting: Landlord
-    //   myProperties(String: String, PageInput: PageInput): [Property]
-    // }
-    
-    // type Mutation {
-    //   createUser(UserInput: UserInput): GeneralResponse
-    //   sendOtp(IdentifierInput: IdentifierInput): GeneralResponse
-    //   addIam(IAmInput: IAmInput): GeneralResponse
-    //   createOrg(OrganisationInput: OrganisationInput): GeneralResponse
-    //   updateById(String: String, UpdateOrganisationInput: UpdateOrganisationInput): GeneralResponse
-    //   addManager(String: String, ManagerInput: ManagerInput): GeneralResponse
-    //   createProperty(String: String, PropertyInput: PropertyInput): GeneralResponse
-    //   bulkAddProperty: GeneralResponse
-    //   addUnit: GeneralResponse
-    //   bulkAddUnit: GeneralResponse
-    //   updateSetting(LandlordInput: LandlordInput): GeneralResponse
-    //   landlordAsset(String: String, LandlordAssetInput: LandlordAssetInput): GeneralResponse
-    //   createTenant(TeenantInput: TeenantInput): GeneralResponse
-    // }
-    
-    // schema {
-    //   query: Query
-    //   mutation: Mutation
-    // }
-    
-    // scalar FilterQueryInput 
-    
-    
-    // scalar String 
-    
-    // input LoginInput {
-    //   password: String!
-    //   identifier: String!
-    // }
-    // input VerifyOtpInput {
-    //   otp: String!
-    //   identifier: String!
-    // }
-    // input PageInput {
-    //   sort: String
-    //   limit: Int
-    //   skip: Int
-    // }
-    // input UserInput {
-    //   firstName: String!
-    //   lastName: String!
-    //   mobile: Float!
-    //   email: String
-    //   password: String
-    // }
-    // input IdentifierInput {
-    //   identifier: String!
-    // }
-    // input IAmInput {
-    //   name: String!
-    //   type: String!
-    //   credencial: String!
-    // }
-    // input OrganisationInput {
-    //   name: String!
-    //   email: String!
-    //   helpEmail: String
-    //   mobile: Float
-    //   helpMobile: Float
-    //   logo: String
-    //   businessUnits: [String]!
-    //   address: AddressInput!
-    // }
-    // input AddressInput {
-    //   line1: String!
-    //   line2: String
-    //   city: String
-    //   stateOrProvince: String!
-    //   location: LocationInput!
-    //   country: String!
-    //   pin: Int
-    // }
-    // input LocationInput {
-    //   type: String!
-    //   coordinates: [Float]!
-    // }
-    // input UpdateOrganisationInput {
-    //   email: String
-    //   helpEmail: String
-    //   mobile: Float
-    //   logo: String
-    // }
-    // input ManagerInput {
-    //   name: String!
-    //   permissions: PermissionInput!
-    //   role: String!
-    //   userIds: [String]!
-    // }
-    // input PermissionInput {
-    //   RealState: String!
-    // }
-    // input PropertyInput {
-    //   name: String!
-    //   address: AddressInput!
-    //   contactPerson: String
-    //   ammenity: Array!
-    //   tags: [String]!
-    //   mainPic: String!
-    //   photos: [String]!
-    // }
-    
-    // scalar Array 
-    
-    // input LandlordInput {
-    //   defaultOrgId: String
-    //   defaultProperty: String
-    //   defaultUnit: String
-    // }
-    // input LandlordAssetInput {
-    //   propertyUnitMap: Array!
-    // }
-    // input TeenantInput {
-    //   firstName: String!
-    //   lastName: String
-    //   orgId: String!
-    //   profilePic: String
-    //   email: String
-    //   dob: String
-    // }
-    // type AuthToken {
-    //   accessToken: String!
-    //   firstName: String!
-    //   email: String
-    //   defaultLanguage: String!
-    // }
-    // type User {
-    //   _id: String!
-    //   firstName: String!
-    //   lastName: String!
-    //   mobile: String!
-    //   email: String
-    //   defaultLanguage: String
-    //   isActive: String!
-    // }
-    // type Organisation {
-    //   _id: String!
-    //   name: String!
-    //   isDeleted: String!
-    //   email: String!
-    //   createdBy: String!
-    //   helpEmail: String
-    //   mobile: String
-    //   helpMobile: String
-    //   businessUnits: [String]!
-    //   logo: String
-    //   address: String
-    //   isActive: String!
-    //   createdAt: String!
-    // }
-    // type Manager {
-    //   _id: String!
-    //   name: String!
-    //   permissions: String!
-    //   role: String!
-    //   userIds: [String]!
-    //   orgId: String!
-    //   assignedBy: String!
-    // }
-    // type Landlord {
-    //   userId: String!
-    //   defaultOrgId: String
-    //   defaultProperty: String
-    //   defaultUnit: String
-    // }
-    // type Property {
-    //   _id: String!
-    //   name: String!
-    //   isDeleted: String!
-    //   orgId: String!
-    //   address: String!
-    //   contactPerson: String!
-    //   photos: [String]
-    //   mainPic: String
-    //   ammenity: [String]!
-    //   updatedAt: String
-    //   tags: [String]
-    //   ownedBy: String!
-    // }
-    // type GeneralResponse {
-    //   message: String!
-    //   refId: String
-    // }
-    // `;
-    
-  
-    console.log("SDL-->>",sdl);
+    // console.log("SDL--->",sdl);
 
 
     return sdl;
@@ -538,90 +348,4 @@ const jsonToSDL = async (schema: SchemaDefinition): Promise<string> => {
 };
 
 export default jsonToSDL;
-
-  //   type Query {
-  //     loginWithPassword(LoginInput: LoginInput): AuthToken
-  //     verifyOtp(VerifyOtpInput: VerifyOtpInput): AuthToken
-  //     getUsers(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [User]
-  //     myProfile: User
-  //     find(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Organisation]
-  //     myOrganisation(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Organisation]
-  //     listManager(String: String, FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Manager]
-  //     mySetting: Landlord
-  //     myProperties(String: String, PageInput: PageInput): [Property]
-  //   }
-    
-  //   type Mutation {
-  //     createUser(UserInput: UserInput): GeneralResponse
-  //     sendOtp(IdentifierInput: IdentifierInput): GeneralResponse
-  //     addIam(IAmInput: IAmInput): GeneralResponse
-  //     create(OrganisationInput: OrganisationInput): GeneralResponse
-  //     updateById(String: String, UpdateOrganisationInput: UpdateOrganisationInput): GeneralResponse
-  //     addManager(String: String, ManagerInput: ManagerInput): GeneralResponse
-  //     createProp(String: String, PropertyInput: PropertyInput): GeneralResponse
-  //     bulkAddProperty: GeneralResponse
-  //     addUnit: GeneralResponse
-  //     bulkAddUnit: GeneralResponse
-  //     updateSetting(LandlordInput: LandlordInput): GeneralResponse
-  //     landlordAsset(String: String, LandlordAssetInput: LandlordAssetInput): GeneralResponse
-  //     createTenant(TenantInput: TenantInput): GeneralResponse
-  //   }
-    
-  //   schema {
-  //     query: Query
-  //     mutation: Mutation
-  //   }
-    
-  //   # Placeholders for unknown types
-  //   scalar AuthToken
-  //   scalar User
-  //   scalar Organisation
-  //   scalar Manager
-  //   scalar Landlord
-  //   scalar Property
-  //   scalar GeneralResponse
-
-  //   # Placeholders for unknown input types
-  //   input LoginInput {
-  //     placeholder: String
-  //   }
-  //   input VerifyOtpInput {
-  //     placeholder: String
-  //   }
-  //   input FilterQueryInput {
-  //     placeholder: String
-  //   }
-  //   input PageInput {
-  //     placeholder: String
-  //   }
-  //   input UserInput {
-  //     placeholder: String
-  //   }
-  //   input IdentifierInput {
-  //     placeholder: String
-  //   }
-  //   input IAmInput {
-  //     placeholder: String
-  //   }
-  //   input OrganisationInput {
-  //     placeholder: String
-  //   }
-  //   input UpdateOrganisationInput {
-  //     placeholder: String
-  //   }
-  //   input ManagerInput {
-  //     placeholder: String
-  //   }
-  //   input PropertyInput {
-  //     placeholder: String
-  //   }
-  //   input LandlordInput {
-  //     placeholder: String
-  //   }
-  //   input LandlordAssetInput {
-  //     placeholder: String
-  //   }
-  //   input TenantInput {
-  //     placeholder: String
-  //   }
-  // `;
+ 
