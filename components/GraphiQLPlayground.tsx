@@ -365,11 +365,17 @@ const GraphiQLPlayground: React.FC = () => {
 
   const customValidationRules = [...specifiedRules, ignoreUnknownTypeRule];
 
+  // Define the fetcher function
+  const fetcher = async (graphQLParams: any): Promise<any> => {
+    return {
+      data: { message: 'Default response' },
+      errors: [{ message: "No fetcher configured" }],
+    };
+  };
+
   return (
     <GraphiQL
-      fetcher={async (graphQLParams) => {
-        // Implement the fetcher to interact with your GraphQL endpoint
-      }}
+      fetcher={fetcher}
       dangerouslyAssumeSchemaIsValid
       schema={schema}
       validationRules={customValidationRules}
