@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-// import GraphiQLPlayground from './components/GraphiQLPlayground';
 import dynamic from 'next/dynamic';
+import { Provider } from 'react-redux';
+import store from '@/store/store';
 
 const GraphiQLPlayground = dynamic(() => import('../components/GraphiQLPlayground'), {
   ssr: false
@@ -22,10 +23,11 @@ const Home: React.FC = () => {
   }, []);
 
   return (
+    <Provider store={store}>
     <div style={{ height: '100vh' }}>
       {!preload && <GraphiQLPlayground />}
-      {/* <GraphiQLPlayground /> */}
     </div>
+    </Provider>
   );
 };
 

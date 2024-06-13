@@ -1,346 +1,52 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GraphiQL } from 'graphiql';
 import 'graphiql/graphiql.css';
 import { buildSchema, GraphQLSchema } from 'graphql';
 import { fetchApiDocs } from '../services/apiService';
 import jsonToSDL from '../utils/jsonToSDL';
-import { ValidationRule, specifiedRules, KnownTypeNamesRule, ScalarLeafsRule, ValidationContext } from 'graphql/validation';
-// import jsonToSDL from '../utils/jsonToSDL';
-
-const respSchema = `
-scalar ObjectId
-
-# Custom scalar type representing MongoDB ObjectId
-
-type TokenResponse {
-  accessToken: String!
-  firstName: String!
-  email: String
-  defaultLanguage: String!
-}
-
-type User {
-  _id: ID!
-  firstName: String!
-  lastName: String!
-  mobile: String!
-  email: String
-  defaultLanguage: String
-  isActive: Boolean!
-}
-
-# Represents the token response received after verifying OTP
-
-input LoginInput {
-  password: String!
-  identifier: String!
-}
-
-# Input type for login operation
-
-input VerifyOtpInput {
-  otp: String!
-  identifier: String!
-}
-
-# Input type for OTP verification operation
-
-input ManagerInput {
-  name: String!
-  role: ManagerRole!
-  userIds: [String!]!
-}
-
-type  ManagerPermissions {
-  RealState: ID
-}
-
-enum ManagerRole {
-  Admin
-  View
-  Add
-  Edit
-}
-
-input LandlordInput {
-  # Define the fields for LandlordInput as required
-  field1: String!
-  field2: String
-  # Add other fields as necessary
-}
-
-type Subscription {
-  # Define your subscription fields here
-  exampleSubscription: String
-}
-
-input PageInput {
-  sort: SortInput
-  limit: Int
-  skip: Int
-}
-
-enum IAMType {
-  BASIC
-  X_API_KEY
-  PASSWORD
-}
-
-input Array {
-  items: [String]
-}
-
-
-input TenantInput {
-  firstName: String!
-  lastName: String!
-  orgId: String! # assuming it's a String based on the description "A mongo id"
-  profilePic: String
-  email: String
-  dob: String
-}
-
-# email: String @constraint(format: "email")
-# dob: String @constraint(pattern: "^(0[1-9]|[12][0-9]|3[01])/((0[1-9]|1[0-2])/(19|20)\\d{2})$")
-
-scalar Date
-
-input FilterQueryInput {
-  field: String
-  value: String
-}
-
-# Input type for pagination
-
-input UserInput {
-  firstName: String!
-  lastName: String!
-  mobile: Float!
-  email: String!
-  password: String!
-}
-
-# Input type for creating a user
-
-input IdentifierInput {
-  identifier: String!
-}
-
-# Input type for identifier
-
-input IAmInput {
-  name: String!
-  type: IAMType!
-  credential: CredentialInput!
-}
-
-# Input type for IAM operation
-
-input CredentialInput {
-  # Could be one of the following types
-  basicAuthInput: BasicAuthInput
-  xApiKeyInput: XApiKeyInput
-}
-
-# Input type for credentials
-
-input BasicAuthInput {
-  username: String!
-  password: String!
-}
-
-# Input type for basic authentication
-
-input XApiKeyInput {
-  apiKey: String!
-}
-
-# Input type for X-API-Key authentication
-
-type Manager {
-  _id: ObjectId!
-  name: String!
-  permissions: ManagerPermissions!
-  role: ManagerRole!
-  userIds: [ObjectId!]!
-  orgId: ObjectId!
-  assignedBy: ObjectId!
-}
-
-# Represents a manager managing properties for an organization
-
-input OrganisationInput {
-  name: String!
-  email: String!
-  helpEmail: String!
-  mobile: Float!
-  helpMobile: Float!
-  logo: String!
-  businessUnits: [BusinessUnit!]!
-}
-
-# Input type for creating an organization
-
-input UpdateOrganisationInput {
-  email: String!
-  helpEmail: String!
-  mobile: Float!
-  logo: String!
-}
-
-# Input type for updating an organization
-
-enum BusinessUnit {
-  RealState
-}
-
-# Business units within an organization
-
-
-input AddressInput {
-  line1: String!
-  line2: String
-  city: String!
-  stateOrProvince: String!
-  location: String!
-  country: String!
-  pin: Int
-}
-
-# Input type for address
-
-input PropertyInput {
-  name: String!
-  address: AddressInput!
-  contactPerson: String
-  ammenity: [Array]!
-  tags: [String]!
-  mainPic: String!
-  photos: [String]!
-}
-
-
-type Property {
-  # Mutations
-  create(String: String, PropertyInput: PropertyInput): GeneralResponse
-  bulkAddProperty: GeneralResponse
-  addUnit: GeneralResponse
-  bulkAddUnit: GeneralResponse
-}
-
-input LandlordAssetInput {
-  propertyUnitMap: [Array!]!
-}
-
-type Landlord {
-  # Queries
-  mySetting: Landlord
-  myProperties(propertyId: String, pageInput: PageInput, filter: [String]!): [Property]
-
-  # Mutations
-  updateSetting(LandlordInput: LandlordInput): GeneralResponse
-  landlordAsset(String: String, LandlordAssetInput: LandlordAssetInput): GeneralResponse
-}
-
-type Tenant {
-  # Mutations
-  create(TenantInput: TenantInput): GeneralResponse
-}
-
-# Represents a tenant
-
-type GeneralResponse {
-  message: String!
-  refId: String
-}
-
-type Organisation {
-  _id: ID!
-  name: String!
-  isDeleted: Boolean!
-  email: String!
-  createdBy: ID!
-  helpEmail: String!
-  mobile: Float!
-  helpMobile: Float!
-  businessUnits: [String!]!
-  logo: String
-  isActive: Boolean!
-  createdAt: Date!
-}
-
-input SortInput {
-  field: String
-  order: SortOrder
-}
-
-enum SortOrder {
-  ASC
-  DESC
-}
-
-type Query {
-  loginWithPassword(LoginInput: LoginInput): TokenResponse
-  verifyOtp(VerifyOtpInput: VerifyOtpInput): TokenResponse
-  getUsers(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [User]
-  myProfile: User
-  find(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Organisation]
-  myOrganisation(FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Organisation]
-  listManager(String: String, FilterQueryInput: FilterQueryInput, PageInput: PageInput): [Manager]
-  mySetting: Landlord
-  myProperties(String: String, PageInput: PageInput, filter: [String]!): [Property]
-}
-
-type Mutation {
-  createUser(UserInput: UserInput): GeneralResponse
-  sendOtp(IdentifierInput: IdentifierInput): GeneralResponse
-  addIam(IAmInput: IAmInput): GeneralResponse
-  create(OrganisationInput: OrganisationInput): GeneralResponse
-  updateById(String: String, UpdateOrganisationInput: UpdateOrganisationInput): GeneralResponse
-  addManager(String: String, ManagerInput: ManagerInput): GeneralResponse
-  createProp(String: String, PropertyInput: PropertyInput): GeneralResponse
-  bulkAddProperty: GeneralResponse
-  addUnit: GeneralResponse
-  bulkAddUnit: GeneralResponse
-  updateSetting(LandlordInput: LandlordInput): GeneralResponse
-  landlordAsset(String: String, LandlordAssetInput: LandlordAssetInput): GeneralResponse
-  createTenant(TenantInput: TenantInput): GeneralResponse
-}
-
-schema {
-  query: Query
-  mutation: Mutation
-  subscription: Subscription
-}
-
-# The GraphQL schema
-`;
+import { specifiedRules, ValidationContext } from 'graphql/validation';
+import { BsArrowRepeat } from 'react-icons/bs';
+import { useDispatch } from 'react-redux';
+import { setMessage } from '@/store/slices/statusSlice';
+import StatusPlaceholder from './statusPlaceholder';
 
 const GraphiQLPlayground: React.FC = () => {
+  const dispatch = useDispatch();
+
   const [schema, setSchema] = useState<GraphQLSchema | null>(null);
+  const [apiEndpoint, setApiEndpoint] = useState<string>('http://15.185.193.197:4026/api');
 
+  const updateMessage = (message: string) => {
+    return dispatch(setMessage(message));
+  }
 
-  useEffect(() => {
-
-    const fetchData = async () => {
+  const fetchData = async () => {
+    if (apiEndpoint) {
       try {
         // Fetch the existing SDL from the server
-        const docs = await fetchApiDocs();
-
+        updateMessage('Fetching JSON schema');
+        const docs = await fetchApiDocs(apiEndpoint);
         // Convert JSON to SDL
-        const sdl = await jsonToSDL(docs);
+        const sdl = await jsonToSDL(docs, updateMessage);
+        sdl && setTimeout(() => { updateMessage(`SDL generated`); }, 300);
         console.log("FINAL SDL---->", sdl);
         // Build schema from SDL
+        // console.log("SDL",sdl);
+        sdl && setTimeout(() => { updateMessage(`Building Graphql Schema`); }, 300);
         setSchema(buildSchema(sdl));
       } catch (error) {
-        console.error("Error fetching and building schema:", error);
+        console.error("Error fetching or building schema:", error);
+        updateMessage(`Error fetching or building schema`);
+        setSchema(null);
       }
-    };
+    }
+  };
 
-    fetchData();
-  }, []);
+  useEffect(() => {
+    schema && setTimeout(() => { updateMessage(`GraphQL Schema Built`); }, 300);
+  }, [schema]);
 
   // const customValidationRules: ValidationRule[] = specifiedRules.filter(rule => rule == ScalarLeafsRule);
   // console.log("specifiedRules",specifiedRules,customValidationRules);
@@ -365,26 +71,52 @@ const GraphiQLPlayground: React.FC = () => {
 
   const customValidationRules = [...specifiedRules, ignoreUnknownTypeRule];
 
-  // Define the fetcher function
   const fetcher = async (graphQLParams: any): Promise<any> => {
-    return {
-      data: { message: 'Default response' },
-      errors: [{ message: "No fetcher configured" }],
-    };
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(graphQLParams),
+      });
+      return response.json();
+    } catch (error) {
+      return { data: null, errors: [{ message: 'error.message' }] };
+    }
   };
 
   return (
-    <GraphiQL
-      fetcher={fetcher}
-      dangerouslyAssumeSchemaIsValid
-      schema={schema}
-      validationRules={customValidationRules}
-      schemaDescription={true}
-    >
-      <GraphiQL.Logo>
-        <div style={{ display: 'none' }}></div>
-      </GraphiQL.Logo>
-    </GraphiQL>
+    <div style={{ height: '100vh', backgroundColor: '#1e1e1e' }}>
+      <div className="input-container">
+        <div className='input-field'>
+          <input
+            type="text"
+            placeholder="Enter API Endpoint"
+            value={apiEndpoint}
+            onChange={(e) => setApiEndpoint(e.target.value)}
+          />
+          <StatusPlaceholder />
+        </div>
+        <button onClick={() => fetchData()}>
+          <BsArrowRepeat />
+        </button>
+      </div>
+      {/* {schema && ( */}
+      <GraphiQL
+        fetcher={fetcher}
+        dangerouslyAssumeSchemaIsValid
+        schema={schema}
+        validationRules={customValidationRules}
+        schemaDescription={true}
+      >
+        <GraphiQL.Logo>
+          <div style={{ display: 'none' }}></div>
+        </GraphiQL.Logo>
+        {/* <GraphiQL.Toolbar/> */}
+      </GraphiQL>
+      {/* )} */}
+    </div>
 
   );
 };

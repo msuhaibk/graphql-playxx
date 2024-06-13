@@ -31,3 +31,60 @@ body {
     text-wrap: balance;
   }
 }
+
+
+/* input css */
+.input-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #212a3b;
+  padding-top: 18px;
+  border-radius: 5px;
+}
+
+.input-container .input-field {
+  width: 697px;
+  padding: 6px 12px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background-color: #181f2c;
+  color: white;
+  margin-right: 10px;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.input-container .input-field input {
+  font-size: 12px;
+  background: none;
+  color: white;
+  outline: none !important;
+  border:none !important;
+  width: -webkit-fill-available;
+}
+
+.input-container .input-field input::placeholder {
+  color: #aaa;
+}
+
+.input-container button {
+  padding: 8px;
+  border: none;
+  border-radius: 5px;
+  background-color: #2c3546;
+  color: #6d7480;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.input-container button:hover {
+  background-color: #181f2c;
+}
+
+.error-message {
+  color: #656972;
+  margin-left: 10px;
+  text-wrap: nowrap;
+}

@@ -2,8 +2,8 @@ import axios from 'axios';
 
 const URL = 'http://15.185.193.197:4026/api';
 
-export const fetchApiDocs = async () => {
-  const response = await axios.get(URL);
+export const fetchApiDocs = async (url: string) => {
+  const response = await axios.get(url || URL);
   return response.data;
 };
 

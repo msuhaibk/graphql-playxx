@@ -235,7 +235,7 @@ const jsonOutputToSDL = async (name: string, json: outputJSONSchema, typeCache: 
 };
 
 
-const jsonToSDL = async (schema: SchemaDefinition): Promise<string> => {
+const jsonToSDL = async (schema: SchemaDefinition, updateMessage?: any): Promise<string> => {
 
     let sdl = '';
     let iSDL = '';
@@ -243,6 +243,10 @@ const jsonToSDL = async (schema: SchemaDefinition): Promise<string> => {
     const unknownTypes: Array<{ type: 'i' | 'o', name: string }> = [];
 
     const typeCache: Record<string, string> = {}; 
+
+    setTimeout(() => {
+      updateMessage("Generating SDL");
+    }, 200);
 
     const getFieldDefinition = (fieldName:string,field:any) => {
       // console.log("field",field);
@@ -319,6 +323,9 @@ const jsonToSDL = async (schema: SchemaDefinition): Promise<string> => {
     // Fetch and add unknown types
     for (const unknownType of unknownTypes) {
       try{
+        setTimeout(() => {
+          updateMessage(`Fetching UnknownType ${unknownType.name}`);
+        }, 300);
         const fetchedType = await fetchUnknownType(unknownType.type, unknownType.name);
         // console.log("FETCHETYPE====>",unknownType?.type,unknownType?.name,fetchedType);
         switch (unknownType.type){ 
@@ -332,6 +339,9 @@ const jsonToSDL = async (schema: SchemaDefinition): Promise<string> => {
         }
       } catch (error) {
         console.log("errrooor",error);
+        setTimeout(() => {
+          updateMessage(`Failed to fetch ${unknownType.name}`);
+        }, 400);
         sdl += `\nscalar ${unknownType?.name} \n\n`;
       }
     }
